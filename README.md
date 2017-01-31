@@ -1,11 +1,11 @@
-## Building Brains -- Hub
+#Building Brains -- Hub
 
 
-#Environment Setup
-#openHab:
+##Environment Setup
+##openHab:
 version: 1.8+
 
-#Raspberry pi:
+##Raspberry pi:
 wget -qO - 'https://bintray.com/user/downloadSubjectPublicKey?
 username=openhab' |sudo apt-key add -
 echo "deb http://dl.bintray.com/openhab/apt-repo stable main" | sudo
