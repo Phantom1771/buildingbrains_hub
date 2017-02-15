@@ -53,7 +53,7 @@ app.identityHub = function() {
     return true;
 };
 
-app.runRountines = function() {
+app.runRoutines = function() {
     return
 };
 
