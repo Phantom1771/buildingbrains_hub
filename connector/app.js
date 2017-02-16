@@ -1,5 +1,6 @@
 var app = require('./config/app.json');
 app.serverConf = require('./config/server.json');
+app.hub = require('./src/hub_utils');
 var sleeptime = 1;
 var failCounter = 0;
 const maxsleep = 16;
@@ -61,8 +62,7 @@ app.run = function() {
     console.log("Running");
     app.identityHub();
     app.runRoutines();
-    console.log("Unexpected termination");
 };
 
-app.run();
-
+//app.run();
+app.hub.init();
