@@ -1,0 +1,21 @@
+var Number i = 0
+val String notifybbrainshub = "http://localhost:8888/change_this_to_desire_url"
+val String bbserverkey = "{secrectkey:none, counter:"
+
+
+/* Connect to Backend  */
+rule "Notify at Startup"
+    when
+        System started
+    then
+        sendHttpPostRequest(notifybbrainshub, "text/plain", bbserverkey+i+"}")
+    end
+
+rule "Notify in scheduled"
+    when
+        Time cron "0 0 2 * * ?"
+    then
+        sendHttpPostRequest(notifybbrainshub, "text/plain",  bbserverkey+i+"}")
+        i = i+1
+    end
+
