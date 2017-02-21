@@ -6,6 +6,7 @@ val String bbserverkey = "{secrectkey:none, counter:"
 /* Connect to Backend  */
 rule "Notify at Startup"
     when
+        /* first msg when openhab is started */
         System started
     then
         sendHttpPostRequest(notifybbrainshub, "text/plain", bbserverkey+i+"}")
@@ -13,6 +14,7 @@ rule "Notify at Startup"
 
 rule "Notify in scheduled"
     when
+        /* update status every 2 hrs */
         Time cron "0 0 2 * * ?"
     then
         sendHttpPostRequest(notifybbrainshub, "text/plain",  bbserverkey+i+"}")
