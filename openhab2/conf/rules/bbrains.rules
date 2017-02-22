@@ -1,6 +1,9 @@
 var Number i = 0
-val String notifybbrainshub = "http://localhost:8888/change_this_to_desire_url"
-val String bbserverkey = "{secrectkey:none, counter:"
+val String baseUrl = "http://localhost"
+val String port = ":8888"
+val pathUrl = "/hubs/register"
+val String notifybbrainshub = baseUrl+port+pathUrl
+var  String bbserverkey = "{secrectkey:none, uuid:"
 
 
 /* Connect to Backend  */
@@ -9,12 +12,16 @@ rule "Notify at Startup"
         /* first msg when openhab is started */
         System started
     then
+        var String uuid
+        uuid = sendHttpGetRequest("http://localhost:8080/rest/uuid")
+        bbserverkey = bbserverkey + uuid + ", counter:"
         sendHttpPostRequest(notifybbrainshub, "text/plain", bbserverkey+i+"}")
     end
 
 rule "Notify in scheduled"
     when
         /* update status every 2 hrs */
+        /* Time cron "1/20 * * * * ?" */
         Time cron "0 0 2 * * ?"
     then
         sendHttpPostRequest(notifybbrainshub, "text/plain",  bbserverkey+i+"}")
