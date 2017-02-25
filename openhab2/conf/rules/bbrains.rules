@@ -1,8 +1,6 @@
 var Number i = 0
-val String baseUrl = "http://localhost"
-val String port = ":8888"
-val pathUrl = "/hubs/register"
-val String notifybbrainshub = baseUrl+port+pathUrl
+/* replace ip/url and port to desired value */ 
+val String bb_url = "http://<ip or url>:<port>/hubs/register"
 var  String bbserverkey = "{secrectkey:none, uuid:"
 
 
@@ -15,7 +13,7 @@ rule "Notify at Startup"
         var String uuid
         uuid = sendHttpGetRequest("http://localhost:8080/rest/uuid")
         bbserverkey = bbserverkey + uuid + ", counter:"
-        sendHttpPostRequest(notifybbrainshub, "text/plain", bbserverkey+i+"}")
+        sendHttpPostRequest(bb_url, "text/plain", bbserverkey+i+"}")
     end
 
 rule "Notify in scheduled"
@@ -24,7 +22,7 @@ rule "Notify in scheduled"
         /* Time cron "1/20 * * * * ?" */
         Time cron "0 0 2 * * ?"
     then
-        sendHttpPostRequest(notifybbrainshub, "text/plain",  bbserverkey+i+"}")
+        sendHttpPostRequest(bb_url, "text/plain",  bbserverkey+i+"}")
         i = i+1
     end
 
