@@ -1,7 +1,6 @@
 var Number i = 0
-/* replace ip/url and port to desired value */ 
-val String bb_url = "http://<ip or url>:<port>/hubs/register"
-var  String bbserverkey = "{secrectkey:none, uuid:"
+val String bb_url = "http://localhost:3000/hubs/register"
+var  String bbserverkey = "{\"secrectkey\":\"none\", \"uuid\":\""
 
 
 /* Connect to Backend  */
@@ -12,17 +11,20 @@ rule "Notify at Startup"
     then
         var String uuid
         uuid = sendHttpGetRequest("http://localhost:8080/rest/uuid")
-        bbserverkey = bbserverkey + uuid + ", counter:"
-        sendHttpPostRequest(bb_url, "text/plain", bbserverkey+i+"}")
+        bbserverkey = bbserverkey + uuid+"\"" + ", \"counter\":\""
+        sendHttpPostRequest(bb_url, "application/json", bbserverkey+i+"\"}")
+		i = i+1
     end
 
 rule "Notify in scheduled"
     when
         /* update status every 2 hrs */
-        /* Time cron "1/20 * * * * ?" */
-        Time cron "0 0 2 * * ?"
+        /* Time cron "0 0 2 * * ?" */
+
+	    /* update status every 8 seconds */
+        Time cron "/8 * * * * ?"
     then
-        sendHttpPostRequest(bb_url, "text/plain",  bbserverkey+i+"}")
+        sendHttpPostRequest(bb_url, "application/json",  bbserverkey+i+"\"}")
         i = i+1
     end
 
