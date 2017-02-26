@@ -1,6 +1,6 @@
 var Number i = 0
 val String bb_url = "http://localhost:3000/hubs/register"
-var  String bbserverkey = "{\"secrectkey\":\"none\", \"uuid\":\""
+var  String bbserverkey = "{\"secrectkey\":\"none\", \"hubCode\":\""
 
 
 /* Connect to Backend  */
