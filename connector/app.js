@@ -1,68 +1,46 @@
 var app = require('./config/app.json');
-app.serverConf = require('./config/server.json');
-app.hub = require('./src/hub_utils');
-var sleeptime = 1;
-var failCounter = 0;
-const maxsleep = 16;
-const maxfailed = 10;
-console.log(app);
+var io = require('socket.io-client')('http://localhost:3000');
+const prompt = require('prompt-sync')();
+const eventList = ['send', 'request', 'echo'];
+const messageList = ['message 1', 'masdfaf', 'adeswwca', 'sdfe 1', '2342', 'asdfa'];
+var connecting = true;
+var connected = false;
+var counter = 0;
+var num = 0;
 
-app.senduuid = function(){
-    var request = require('request');
-    const port = app.serverConf.port;
-    const ip = app.serverConf.ip;
-    const protocol = app.serverConf.httpp;
-    const base = protocol+"://"+ip+":"+port;
-    const req_url = '/rest';
-    console.log(base);
-    var body = app.hardware;
-    console.log(body);
-    return true;
-    const options = {
-        url: base+req_url,
-        method: 'GET',
-        body:body
-    };
-    request(options, function(err, res, body) {
-        console.log(body) 
-        if(!err && res.statusCode == 200) {
-            console.log(body);
-            return true;
-        }
-        else {
-            //return false;
-            return true;
-        }
-    });
-};
+onConnect();
 
-app.identityHub = function() {
-    var i=0;
-    while(!app.senduuid()) {
-        setTimeout(function(){
-            console.log((i++)+" Failed to identify hub");
-        }, 60000);
+io.on('event', function(data){
+  console.log(data);
+});
 
-        sleeptime += 2;
-        if(sleeptime > 180) {
-            sleeptime = 180;
-        }
-        console.log((i++) +"sleep time: " + sleeptime);
+io.on('notification', function(data) {
+  console.log("notification:\n" + JSON.stringify(data));
+});
 
-    }
-    sleeptime = 1;
-    return true;
-};
+io.on('disconnect', function(){
+  console.log("disconnect");
+  connecting = false;
+  connected = false
+});
 
-app.runRoutines = function() {
-    return
-};
 
-app.run = function() {
-    console.log("Running");
-    app.identityHub();
-    app.runRoutines();
-};
+setInterval(function() {
+  if(counter > 0) return;
+  counter++;
+  if(!connecting && !connected){
+    onConnect();
+  }
+}, 1000);
 
-//app.run();
-app.hub.init();
+function onConnect() {
+  counter = 0;
+  connecting = true;
+  io.on('connect', function(){
+    connecting = true;
+    num++;
+    console.log(num + " connected");
+    io.emit('initial', { secretekey:"myscretekey", uuid:'myuuid'});
+    connected = true;
+  });
+}
