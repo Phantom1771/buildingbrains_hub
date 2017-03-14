@@ -1,89 +1,87 @@
 
-const debug = require('debug')('[LOG]');
-const winston = require('winston');
-var express = require('express');
-var request = require('request');
-var app = express();
-app.config = require('./config/config');
+var winston = require('winston');
+const reqfwd = require('request');
+const reqbwd = require('request');
+const backend = require('./config/server');
+const hubutils = require('./src/hub_utils');
+var Connected = false;
+var app = require('./config/config');
+app.backend = backend;
+app.hubutils = hubutils;
+app.reqId = 0;
+app.data = undefined;
 
-// start socket io
-function sioConnect(context) {
-  winston.log('info', 'Enable IO');
-  winston.log('info', 'screte', context.config.hardware.secretekey);
-  if(context.io == undefined) {
-    var url = app.config.getiosUrl();
-    context.io = require('socket.io-client')(url, {
-      'reconnection': false,
-      //'reconnectionAttempts': 3,
-      query: context.config.hardware
-    });
+function sendReqToHub(json) {
+  winston.info("INFO", "request request to openHab");
+  // send request to the hub
+  var options = hubutils.getOptions(json);
+  console.log(options);
+  reqbwd(options, function(err, res){
+    app.data = '{"reqId":0}';
+    if(!err) {
+      app.data = res;
+    }
+    else {
+      winston.error("ERROR", "Internal: Connection Error");
+      app.data = '{"message":"error"}';
+      Connected = false;
+    }
+  });
+};
+
+/*
+  send request to backend server and base on the response
+  - send request to openhab, or
+  - wait for 500 ms and request
+
+  Expected JSON format from response.body of server
+  {
+    reqId: integer          //for backend
+    method: {GET|POSt}
+    itemname: string,       // empty string to query all items
+    command: string {ON,OFF,INCREASE,DECREASE},
   }
-  var io = app.io;
-  // Handle initiation
-  // emit 'initial' and hardware info
-  io.on('connect', function(data){
-    winston.log('info', 'Created connection', data);
-    context.config.waitfactor = 1;
-  });
-
-  io.on('connect_error', function() {
-    winston.log('info', 'connect_error');
-    context.config.timetowait = context.config.timeout*context.config.waitfactor;
-    if(context.config.waitfactor <= 20)
-      context.config.waitfactor += 1;
-    var baseUrl = context.config.getLoUrl();
-    request.get(baseUrl + '/connect');
-  });
-
-  // Handle all requestes from server
-  // GET, POST, PUT ...
-  io.on('request', function(data){
-    winston.log('info', 'Received request', data);
-  });
-
-  // handle notification
-  // e.g. timeout
-  io.on('notification', function(data) {
-    winston.log('info', 'Got notificaiton', data);
-  });
-
-
-
-  // disconnected by server
-  io.on('disconnect', function(){
-    winston.log('info', 'disconnection');
-    context.config.timetowait = context.config.timeout;
-    var baseUrl = context.config.getLoUrl();
-    request.get(baseUrl + '/disconnected');
+*/
+function sendReqToBackEnd() {
+  winston.info("INFO", "request request to Backend");
+  var options = backend.getOptions(app);
+  reqfwd(options, function(err, res){
+    if(!err) {
+      var data = JSON.parse(res.body);
+      winston.info("[INFO]", "keys number: ", Object.keys(data).length)
+      if(Object.keys(data).length) {
+        winston.info("[INFO]", "reqId: ", data.reqId)
+        var reqId = data.reqId;
+        if(reqId > 0) {
+          winston.info("[INFO]", "should send request to Hub");
+          app.reqId = reqId;
+          console.log(data);
+          sendReqToHub(data);
+        }
+        // server response last request which the hub response
+        // server's request
+        else{
+            winston.info("[DONE]", "Request");
+            Connected = false;
+        }
+      }
+    }
+    else {
+      winston.error("ERROR", "External: Connection Error");
+      Connected = false;
+    }
   });
 }
 
-// app routines
+app.run = function() {
+  winston.info("[INFO]" + "App starts....");
+  setInterval(function() {
+    if(!Connected) {
+      winston.info("connected")
+      Connected = true;
+      sendReqToBackEnd();
+    }
+  }, app.sendreqtime)
+}
 
-// server disconnected
-app.get('/disconnected', function(req, res) {
-  res.end();
-  setTimeout(function() {
-    app.io.connect();
-  }, app.config.timetowait);
-});
-
-app.get('/connect', function(req, res){
-  res.end();
-  setTimeout(function() {
-    app.io.connect();
-  }, app.config.timetowait);
-});
-
-app.get('/reboot', function(req, res){
-  winston.log('info', 'Invalid');
-});
-
-app.listen(app.config.port, function() {
-  winston.log('info', 'Hardware info', app.config.hardware);
-  winston.log('info', 'Server info', app.config.server);
-  winston.log('info', 'Server info', app.config.sioserver);
-  winston.log('info', 'Loopback', app.base_url+":" + app.port);
-  winston.log('info', 'Building Brains Service starts');
-  sioConnect(app);
-});
+app.run();

@@ -10,11 +10,10 @@
   "author": "Building Brains",
   "license": "ISC",
   "dependencies": {
-    "debug": "^2.6.1",
-    "express": "^4.14.1",
+    "body-parser": "^1.17.1",
     "net": "^1.0.2",
+    "random-number": "0.0.7",
     "request": "^2.80.0",
-    "socket.io-client": "^1.7.3",
     "winston": "^2.3.1"
   }
 }
