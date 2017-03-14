@@ -8,25 +8,24 @@
 ## Documentation
 ###Json Format on requesting
 >{ <br/>
->  secretekey: string,
->  hubCode:string,
->  reqId: integer,
->  optional(`response: json(string)`)
+>  secretekey: string,<br/>
+>  hubCode:string,<br/>
+>  reqId: integer,<br/>
+>  optional(`response: json(string)`)<br/>
 >} <br/>
-> secretekey: not used
-> hubCode: id of hub
-> reqId: 0, regular request; >0, response is valid
-> 
+> secretekey: not used<br/>
+> hubCode: id of hub<br/>
+> reqId: 0, regular request; >0, response is valid<br/>
 
 
 ###Json Format on responding (basic fields expected)
 >{ <br/>
->  reqId: integer
->  method: {GET|POSt}
->  itemname: {string|""}
->  command: string {ON,OFF,INCREASE,DECREASE}
+>  reqId: integer<br/>
+>  method: {GET|POSt}<br/>
+>  itemname: {string|""}<br/>
+>  command: string {ON,OFF,INCREASE,DECREASE}<br/>
 >}<br/>
-> reqId: 0, regular request; >0, response is valid
-> method: method used on hub
-> itemname: query all items when itemsname is empty stirng
-> command: command of openhab
+> reqId: 0, regular request; >0, response is valid<br/>
+> method: method used on hub<br/>
+> itemname: query all items when itemsname is empty stirng<br/>
+> command: command of openhab<br/>
