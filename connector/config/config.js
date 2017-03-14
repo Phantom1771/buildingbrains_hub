@@ -5,5 +5,5 @@ module.exports = {
     secretekey: 'AABBCCDD',
     hubCode: 'bbTestHubCode'
   },
-  sendreqtime: 5000    // 0.5 sec
+  sendreqtime: 5000    // 5 sec
 }

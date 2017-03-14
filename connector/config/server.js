@@ -28,7 +28,7 @@ module.exports = {
     param: cxt :app
     return options for request and its body is in JSON Format
     {
-      secretekey: string, hubCode:string, id: integer, response: json(string)
+      secretekey: string, hubCode:string, reqId: integer, response: json(string)
     }
   */
   getOptions: function(cxt) {     // construct request options
@@ -42,10 +42,13 @@ module.exports = {
       }
     };
     data.reqId = cxt.reqId;                // extend object
-    data.response = cxt.data;           // extend object
+    if(cxt.reqId > 0)
+      data.response = cxt.data;           // extend object
     options.body = JSON.stringify(data);
     return options;
   },
+
+  // configuration
   path: '/checkupdates',
   ipaddrs:['127.0.0.1','127.0.0.1'],
   port:'8000'

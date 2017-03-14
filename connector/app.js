@@ -9,7 +9,7 @@ var app = require('./config/config');
 app.backend = backend;
 app.hubutils = hubutils;
 app.reqId = 0;
-app.data = undefined;
+app.data = "{}";
 
 function sendReqToHub(json) {
   winston.info("INFO", "request request to openHab");
@@ -17,15 +17,15 @@ function sendReqToHub(json) {
   var options = hubutils.getOptions(json);
   console.log(options);
   reqbwd(options, function(err, res){
-    app.data = '{"reqId":0}';
     if(!err) {
       app.data = res;
     }
     else {
       winston.error("ERROR", "Internal: Connection Error");
       app.data = '{"message":"error"}';
-      Connected = false;
     }
+    // restart request
+    Connected = false;
   });
 };
 
