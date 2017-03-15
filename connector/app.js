@@ -83,5 +83,9 @@ app.run = function() {
     }
   }, app.sendreqtime)
 }
-
+winston.info('[INFO]', 'dir: \n', __dirname);
+winston.info('[INFO]', 'filename: \n', __filename);
 app.run();
+
+
+module.exports = app;
