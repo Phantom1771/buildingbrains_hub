@@ -1,5 +1,6 @@
 
-var winston = require('winston');
+const _name = 'app.js';
+const winston = require('winston');
 const reqfwd = require('request');
 const reqbwd = require('request');
 const backend = require('./config/server');
@@ -9,10 +10,10 @@ var app = require('./config/config');
 app.backend = backend;
 app.hubutils = hubutils;
 app.reqId = 0;
-app.data = "{}";
+app.data = '{}';
 
-function sendReqToHub(json) {
-  winston.info("INFO", "request request to openHab");
+app.sendReqToHub = function(json) {
+  /*winston.info("INFO", "request request to openHab");*/
   // send request to the hub
   var options = hubutils.getOptions(json);
   console.log(options);
@@ -21,7 +22,7 @@ function sendReqToHub(json) {
       app.data = res;
     }
     else {
-      winston.error("ERROR", "Internal: Connection Error");
+      /*winston.error("ERROR", "Internal: Connection Error");*/
       app.data = '{"message":"error"}';
     }
     // restart request
@@ -42,50 +43,52 @@ function sendReqToHub(json) {
     command: string {ON,OFF,INCREASE,DECREASE},
   }
 */
-function sendReqToBackEnd() {
-  winston.info("INFO", "request request to Backend");
+app.sendReqToBackEnd = function() {
+  /*winston.info("INFO", "request request to Backend");*/
   var options = backend.getOptions(app);
   reqfwd(options, function(err, res){
     if(!err) {
       var data = JSON.parse(res.body);
-      winston.info("[INFO]", "keys number: ", Object.keys(data).length)
+      /*winston.info("[INFO]", "keys number: ", Object.keys(data).length)*/
       if(Object.keys(data).length) {
-        winston.info("[INFO]", "reqId: ", data.reqId)
+        /*winston.info("[INFO]", "reqId: ", data.reqId)*/
         var reqId = data.reqId;
         if(reqId > 0) {
-          winston.info("[INFO]", "should send request to Hub");
+          /*winston.info("[INFO]", "should send request to Hub");*/
           app.reqId = reqId;
           console.log(data);
-          sendReqToHub(data);
+          app.sendReqToHub(data);
         }
         // server response last request which the hub response
         // server's request
         else{
-            winston.info("[DONE]", "Request");
+            /*winston.info("[DONE]", "Request");*/
             Connected = false;
         }
       }
     }
     else {
-      winston.error("ERROR", "External: Connection Error");
+      /*winston.error("ERROR", "External: Connection Error");*/
       Connected = false;
     }
   });
 }
 
 app.run = function() {
-  winston.info("[INFO]" + "App starts....");
+  /*winston.info("[INFO]" + "App starts....");*/
   setInterval(function() {
     if(!Connected) {
-      winston.info("connected")
+      /*winston.info("connected")*/
       Connected = true;
-      sendReqToBackEnd();
+      app.sendReqToBackEnd();
     }
   }, app.sendreqtime)
 }
-winston.info('[INFO]', 'dir: \n', __dirname);
-winston.info('[INFO]', 'filename: \n', __filename);
-app.run();
-
 
 module.exports = app;
+
+if (!module.parent) {
+    app.run();
+} else {
+    console.log("Testing " + _name);
+}
