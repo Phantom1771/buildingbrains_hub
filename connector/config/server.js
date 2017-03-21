@@ -68,7 +68,7 @@ module.exports = {
   },
 
   getRegisterdeviceOptions: function(cxt) {     // construct request options
-    var url = this.getUrl();
+    var url = this.getUrl('registerdevice');
     var data = cxt.hardware;      // object
     var options = {
       method:'POST',

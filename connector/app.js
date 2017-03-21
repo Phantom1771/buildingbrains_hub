@@ -46,55 +46,36 @@ app.checkNewDevices = function () {
 //
 //
 //
-app.sendReqToHub = function(json) {
-  /*winston.info("INFO", "request request to openHab");*/
+app.sendReqToHub = function(options) {
   // send request to the hub
-  var options = hubutils.getOptions(json);
-  console.log(options);
+  var ret;
   reqbwd(options, function(err, res){
     if(!err) {
-      app.data = res;
+      ret = JSON.parse(res);
     }
     else {
-      /*winston.error("ERROR", "Internal: Connection Error");*/
-      app.data = '{"message":"error"}';
+      ret = '{"message":"error"}';
     }
-    // restart request
-    Connected = false;
+    return ret;
   });
 };
 
 //
 //
 //
-app.sendReqToBackEnd = function() {
+app.checkupdates = function() {
   /*winston.info("INFO", "request request to Backend");*/
   var options = backend.getCheckupdateOptions(app);
   reqfwd(options, function(err, res){
+    var data = JSON.parse(res.body);
     if(!err) {
-      var data = JSON.parse(res.body);
-      /*winston.info("[INFO]", "keys number: ", Object.keys(data).length)*/
-      if(Object.keys(data).length) {
-        /*winston.info("[INFO]", "reqId: ", data.reqId)*/
-        var reqId = data.reqId;
-        if(reqId > 0) {
-          /*winston.info("[INFO]", "should send request to Hub");*/
-          app.reqId = reqId;
-          console.log(data);
-          app.sendReqToHub(data);
-        }
-        // server response last request which the hub response
-        // server's request
-        else{
-            /*winston.info("[DONE]", "Request");*/
-            Connected = false;
-        }
+      if(data.result==0) {
+        var existingUpate = JSON.parse(updates);
+        var options = hubutils.getQueryOptions(existingUpate);
+        sendReqToHub(options); // backend not handle any error
       }
     }
-    else {
-      /*winston.error("ERROR", "External: Connection Error");*/
-      Connected = false;
-    }
+    Connected = false;
   });
 }
 
@@ -102,6 +83,8 @@ app.sendReqToBackEnd = function() {
 app.startCheckNewDevices = function() {
   setInterval(function() {
     if(registered) {
+      var options = backend.getRegisterdeviceOptions(app);
+      console.log(JSON.stringify(options));
       app.checkNewDevices();
     }
   }, app.checkdevtime);
@@ -113,7 +96,8 @@ app.startCheckupdates = function() {
     if(registered&(!Connected)) {
       /*winston.info("connected")*/
       Connected = true;
-      app.sendReqToBackEnd();
+      var options = backend.getCheckupdateOptions(app);
+      app.checkupdates();
     }
   }, app.sendreqtime);
 };

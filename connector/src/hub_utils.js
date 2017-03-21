@@ -1,11 +1,11 @@
 module.exports = {
-  getUrl:function(json) {
+  getQueryUrl:function() {
     return 'http://localhost:8080'+"/rest/items";
   },
-  getOptions: function(json) {     // construct request options
-    var url = this.getUrl();
-    if(json.itemname != '')
-      url += '/'+json.itemname;
+  getQueryOptions: function(json) {     // construct request options
+    var url = this.getQueryUrl();
+    if(json.deviceLink != '') {
+      url += '/'+json.deviceLink;
     var options = {
       method:json.method,
       uri: url,
@@ -14,8 +14,18 @@ module.exports = {
       options.headers = {
         'Content-Type':'text/plain'
       }
-      option.body = json.command;
+      option.body = json.setting;
     }
+    return options;
+  },
+  getNewDeviceOptions: function(json) {
+    var url = this.getUrl();
+
+    var options = {
+      method:json.method,
+      uri: url,
+    };
+
     return options;
   }
 }
