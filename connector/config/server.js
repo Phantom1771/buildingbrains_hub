@@ -10,7 +10,7 @@ function genRandReqID() {
 }
 
 module.exports = {
-  getUrl: function() {        // construct URL
+  getUrl: function(type) {        // construct URL
     var base_url = 'http://';
     var options = {
       min:  0,
@@ -20,7 +20,12 @@ module.exports = {
     var rnum = rn(options);
     base_url += this.ipaddrs[rnum];
     base_url += ":"+this.port;
-    return base_url+this.path;
+    if(type == 'checkupdates')
+      return base_url+this.path_checkupdates;
+    else if(type == 'registerhub')
+      return base_url+this.path_registerhub;
+    else if(type == 'registerdevice')
+      return base_url+this.path_registerdevice;
   },
   /*
     Contruct option for request in type of asking (reqId == 0)
@@ -31,8 +36,8 @@ module.exports = {
       secretekey: string, hubCode:string, reqId: integer, response: json(string)
     }
   */
-  getOptions: function(cxt) {     // construct request options
-    var url = this.getUrl();
+  getCheckupdateOptions: function(cxt) {     // construct request options
+    var url = this.getUrl('checkupdates');
     var data = cxt.hardware;      // object
     var options = {
       method:'POST',
@@ -48,8 +53,38 @@ module.exports = {
     return options;
   },
 
+  getRegisterhubOptions: function(cxt) {     // construct request options
+    var url = this.getUrl('registerhub');
+    var data = cxt.hardware;      // object
+    var options = {
+      method:'POST',
+      uri: url,
+      headers: {
+        'Content-Type':'application/json'
+      },
+    };
+    options.body = JSON.stringify(data);
+    return options;
+  },
+
+  getRegisterdeviceOptions: function(cxt) {     // construct request options
+    var url = this.getUrl();
+    var data = cxt.hardware;      // object
+    var options = {
+      method:'POST',
+      uri: url,
+      headers: {
+        'Content-Type':'application/json'
+        }
+      };
+    options.body = JSON.stringify(data);
+    return options;
+  },
+
   // configuration
-  path: '/checkupdates',
+  path_checkupdates: '/hubs/checkUpdates',
+  path_registerhub: '/hubs/register',
+  path_registerdevice: '/devices/register',
   ipaddrs:['127.0.0.1','127.0.0.1'],
   port:'8000'
 }
