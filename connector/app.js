@@ -5,13 +5,20 @@ const reqfwd = require('request');        // used to communicate backend
 const reqbwd = require('request');        // used to communicate openHab
 const backend = require('./config/server');
 const hubutils = require('./src/hub_utils');
-var registered = false;
+var registered = true;
 var Connected = false;
 var app = require('./config/config');
 app.backend = backend;
 app.hubutils = hubutils;
 app.reqId = 0;
 app.data = '{}';
+var sample = [{
+		deviceLink: "testitem",
+		hubCode: "bbTestHubCode", 
+		state: "OFF", 
+		category: "", 
+		type: "Switch"
+		}];
 
 //
 // Register the hub
@@ -21,12 +28,11 @@ app.registerHub = function() {
   reqfwd(options, function(err, res){
     if(!err) {
       var data = JSON.parse(res.body);
-      if(data.result == 0 ||
-          data.error == 'This Hub has already been registered') {
+      if(data.result == 0 ) {
         registered = true;
       }
       else {
-        winston.info('ERR', 'EXTERNAL ERROR', data.error);
+        winston.info('ERROR', 'EXTERNAL ERROR', data.error);
       }
 
     }
@@ -40,8 +46,8 @@ app.registerHub = function() {
 //
 //
 app.checkNewDevices = function () {
-
-}
+	
+};
 
 //
 //
@@ -64,15 +70,24 @@ app.sendReqToHub = function(options) {
 //
 //
 app.checkupdates = function() {
-  /*winston.info("INFO", "request request to Backend");*/
+  
   var options = backend.getCheckupdateOptions(app);
   reqfwd(options, function(err, res){
     var data = JSON.parse(res.body);
+    console.log(data);
     if(!err) {
       if(data.result==0) {
-        var existingUpate = JSON.parse(updates);
-        var options = hubutils.getQueryOptions(existingUpate);
-        sendReqToHub(options); // backend not handle any error
+				//var updates = JSON.parse(data.updates);
+				var updates = data.updates;
+				if(updates.length > 0) {
+					updates.forEach((update) => {
+						var options = hubutils.getQueryOptions(update);
+						sendReqToHub(options); // backend not handle any error
+					});
+				}
+				else {
+					winston.info("INFO", "No UPDATES");
+				}
       }
     }
     Connected = false;
@@ -83,8 +98,6 @@ app.checkupdates = function() {
 app.startCheckNewDevices = function() {
   setInterval(function() {
     if(registered) {
-      var options = backend.getRegisterdeviceOptions(app);
-      console.log(JSON.stringify(options));
       app.checkNewDevices();
     }
   }, app.checkdevtime);
@@ -96,7 +109,6 @@ app.startCheckupdates = function() {
     if(registered&(!Connected)) {
       /*winston.info("connected")*/
       Connected = true;
-      var options = backend.getCheckupdateOptions(app);
       app.checkupdates();
     }
   }, app.sendreqtime);

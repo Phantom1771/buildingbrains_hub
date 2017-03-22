@@ -27,15 +27,7 @@ module.exports = {
     else if(type == 'registerdevice')
       return base_url+this.path_registerdevice;
   },
-  /*
-    Contruct option for request in type of asking (reqId == 0)
-                            and responding(reqId > 0)
-    param: cxt :app
-    return options for request and its body is in JSON Format
-    {
-      secretekey: string, hubCode:string, reqId: integer, response: json(string)
-    }
-  */
+  
   getCheckupdateOptions: function(cxt) {     // construct request options
     var url = this.getUrl('checkupdates');
     var data = cxt.hardware;      // object
@@ -67,7 +59,7 @@ module.exports = {
     return options;
   },
 
-  getRegisterdeviceOptions: function(cxt) {     // construct request options
+  getRegisterdeviceOptions: function(cxt, devInfo) {     // construct request options
     var url = this.getUrl('registerdevice');
     var data = cxt.hardware;      // object
     var options = {
@@ -77,6 +69,12 @@ module.exports = {
         'Content-Type':'application/json'
         }
       };
+    console.log(devInfo);
+    data.deviceLink = devInfo.deviceLink;
+    data.hubCode = devInfo.hubCode;
+    data.state = devInfo.state;
+    data.category = devInfo.category;
+    data.type = devInfo.type;
     options.body = JSON.stringify(data);
     return options;
   },
@@ -86,5 +84,5 @@ module.exports = {
   path_registerhub: '/hubs/register',
   path_registerdevice: '/devices/register',
   ipaddrs:['127.0.0.1','127.0.0.1'],
-  port:'8000'
+  port:'3000'
 }
