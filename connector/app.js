@@ -1,11 +1,11 @@
 
 const _name = 'app.js';
 const winston = require('winston');
-const reqfwd = require('request');        // used to communicate backend
-const reqbwd = require('request');        // used to communicate openHab
+//const request = require('request');        // used to communicate backend
+const request = require('request');        // used to communicate openHab
 const backend = require('./config/server');
 const hubutils = require('./src/hub_utils');
-var registered = true;
+var registered = false;
 var Connected = false;
 var app = require('./config/config');
 app.backend = backend;
@@ -25,7 +25,7 @@ var sample = [{
 //
 app.registerHub = function() {
   var options = backend.getRegisterhubOptions(app);
-  reqfwd(options, function(err, res){
+  request(options, function(err, res){
     if(!err) {
       var data = JSON.parse(res.body);
       if(data.result == 0 ) {
@@ -54,16 +54,7 @@ app.checkNewDevices = function () {
 //
 app.sendReqToHub = function(options) {
   // send request to the hub
-  var ret;
-  reqbwd(options, function(err, res){
-    if(!err) {
-      ret = JSON.parse(res);
-    }
-    else {
-      ret = '{"message":"error"}';
-    }
-    return ret;
-  });
+  
 };
 
 //
@@ -72,24 +63,38 @@ app.sendReqToHub = function(options) {
 app.checkupdates = function() {
   
   var options = backend.getCheckupdateOptions(app);
-  reqfwd(options, function(err, res){
-    var data = JSON.parse(res.body);
-    console.log(data);
+  request(options, function(err, res, body){
     if(!err) {
-      if(data.result==0) {
-				//var updates = JSON.parse(data.updates);
+			var data = JSON.parse(body);
+      if(data.result == 0) {
 				var updates = data.updates;
 				if(updates.length > 0) {
 					updates.forEach((update) => {
 						var options = hubutils.getQueryOptions(update);
-						sendReqToHub(options); // backend not handle any error
+						console.log("Request to " + JSON.stringify(options));
+						// send request to the hub
+						var request = require("request");
+						request(options, function(err, res){
+							if(!err) {
+								console.log("STATUS "+res.statusCode);
+							}
+							else {
+								winston.info("INFO", "INTERNAL ERROR");
+							}
+						});
 					});
 				}
 				else {
-					winston.info("INFO", "No UPDATES");
+					winston.info("INFO", "NO UPDATES");
 				}
-      }
+			}
+      else {
+				winston.info("ERROR", "DATABASE ERROR");
+			}
     }
+    else {
+			winston.info("ERROR", "EXTERNAL ERROR");
+		}
     Connected = false;
   });
 }
