@@ -27,7 +27,7 @@ module.exports = {
     else if(type == 'registerdevice')
       return base_url+this.path_registerdevice;
   },
-  
+
   getCheckupdateOptions: function(cxt) {     // construct request options
     var url = this.getUrl('checkupdates');
     var data = cxt.hardware;      // object
@@ -59,9 +59,8 @@ module.exports = {
     return options;
   },
 
-  getRegisterdeviceOptions: function(cxt, devInfo) {     // construct request options
+  getRegisterdeviceOptions: function(cxt, device) {     // construct request options
     var url = this.getUrl('registerdevice');
-    var data = cxt.hardware;      // object
     var options = {
       method:'POST',
       uri: url,
@@ -69,13 +68,8 @@ module.exports = {
         'Content-Type':'application/json'
         }
       };
-    console.log(devInfo);
-    data.deviceLink = devInfo.deviceLink;
-    data.hubCode = devInfo.hubCode;
-    data.state = devInfo.state;
-    data.category = devInfo.category;
-    data.type = devInfo.type;
-    options.body = JSON.stringify(data);
+    device.hubCode = cxt.hardware.hubCode;
+    options.body = JSON.stringify(device);
     return options;
   },
 

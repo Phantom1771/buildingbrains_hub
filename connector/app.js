@@ -8,17 +8,6 @@ const hubutils = require('./src/hub_utils');
 var registered = false;
 var Connected = false;
 var app = require('./config/config');
-app.backend = backend;
-app.hubutils = hubutils;
-app.reqId = 0;
-app.data = '{}';
-var sample = [{
-		deviceLink: "testitem",
-		hubCode: "bbTestHubCode", 
-		state: "OFF", 
-		category: "", 
-		type: "Switch"
-		}];
 
 //
 // Register the hub
@@ -42,38 +31,86 @@ app.registerHub = function() {
   });
 };
 
-//
-//
-//
-app.checkNewDevices = function () {
-	
-};
+app.registerNewDevices = function() {
+	var url = hubutils.getInboxUrl();
+	// query new devices in INBOX
+	request.get(url)
+				.on('response', function(res) {
+					var devices = JSON.parse(res.body);
+					if(devices.length > 0) {
+						devices.forEach((deviceinfo) => {
+							// approve -> search things -> search items
+							var appOp = hubutils.getApproveDevOptions(deviceinfo);
+							request(appOp, function(err, res) {
+								if(!err && res.statusCode == 200) {
+									// handle after approving
+									app.prepareDeviceInfo(deviceinfo);
+								}
+							});
+						});
+					}
+					else {
+						winston.info('INFO', 'NO NEW DEVICES');
+					}
+				});
+}
 
-//
-//
-//
-app.sendReqToHub = function(options) {
-  // send request to the hub
-  
-};
+app.prepareDeviceInfo = function(devInfo) {
+	var url = hubutils.getThingUrl(devInfo.properties.thingUID);
+	request.get(url)
+		.on('response', function(res){
+			if(res.statusCode === 200) {
+				var thing = JSON.parse(res.body);
+				if((thing.channels).length > 0 && (thing.channels.linkedItems)>0) {
+					const channel = thing.channels[0];
+					const linkedItem = channel.linkedItems[0];
+					var device = {
+						deviceLink:linkedItem,
+						type:channel.itemType
+					};
+					url = hubutils.getItemUrl(linkedItem, 'state');
+					request.get(url)
+									.on('response', function(itemres){
+										if(!err && itemres.statusCode === 200) {
+											device.state = itemres.body;
+											app.registerDevice(device);
+										}
+									});
+				}
+			}
+		});
+}
+
+app.registerDevice = function(device) {
+	var options = backend.getRegisterdeviceOptions(app, device);
+	request(options, function(err, res){
+		if(!err) {
+			console.log('Server gets new device', device.deviceLink);;
+		}
+		else {
+			// Handle CONNECTION ERROR
+			winston.info('ERROR', 'CONNECTION ERROR');
+		}
+	});
+}
 
 //
 //
 //
 app.checkupdates = function() {
-  
   var options = backend.getCheckupdateOptions(app);
   request(options, function(err, res, body){
     if(!err) {
 			var data = JSON.parse(body);
-      if(data.result == 0) {
+      if(data.result === 0) {
 				var updates = data.updates;
 				if(updates.length > 0) {
 					updates.forEach((update) => {
-						var options = hubutils.getQueryOptions(update);
+						update.method = "POST";
+						var options = hubutils.getSendCmdOptions(update);
 						console.log("Request to " + JSON.stringify(options));
 						// send request to the hub
-						var request = require("request");
+						//var request = require("request");
 						request(options, function(err, res){
 							if(!err) {
 								console.log("STATUS "+res.statusCode);
@@ -107,7 +144,6 @@ app.startCheckNewDevices = function() {
     }
   }, app.checkdevtime);
 };
-
 
 app.startCheckupdates = function() {
   setInterval(function() {
