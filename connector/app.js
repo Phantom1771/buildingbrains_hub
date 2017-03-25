@@ -63,9 +63,6 @@ app.registerNewDevices = function() {
 }
 
 app.prepareDeviceInfo = function(devInfo) {
-	devInfo = JSON.parse('{"flag":"NEW","label":"test Switch","properties":{"udn":"Socket-1_0-221328K0101916"},"representationProperty":"udn","thingUID":"wemo:socket:Socket-1_0-221328K0101916","thingTypeUID":"wemo:socket"}');
-
-	console.log("construct device information");
 	var url = hubutils.getThingUrl(devInfo.thingUID);
 	var options = {
 		uri: url,
