@@ -1,6 +1,6 @@
 #Hub Connector
 
 ## Install modules
-`cd /<path>/<to>`
-`npm install`
-`npm start`
+1. `cd /<path>/<to>`
+2. `npm install`
+3. `npm start`
