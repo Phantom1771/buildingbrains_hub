@@ -16,14 +16,14 @@ app.registerHub = function() {
   var options = backend.getRegisterhubOptions(app);
   request(options, function(err, res){
     if(!err) {
-      var data = JSON.parse(res.body);
-      if(data.result == 0 ) {
-        registered = true;
-      }
-      else {
-        winston.info('ERROR', 'EXTERNAL ERROR', data.error);
-      }
-
+			if(res.statusCode === 200 ||
+					res.statusCode === 400) {
+						registered = true;
+      			winston.info('OK', 'HUB is registered');
+					}
+			else {
+      	winston.info('ERROR', 'UNKNOWN ERROR');
+			}
     }
     else {
       winston.info('ERROR', 'CONNECTION ERROR');
@@ -34,62 +34,96 @@ app.registerHub = function() {
 app.registerNewDevices = function() {
 	var url = hubutils.getInboxUrl();
 	// query new devices in INBOX
-	request.get(url)
-				.on('response', function(res) {
-					var devices = JSON.parse(res.body);
-					if(devices.length > 0) {
-						devices.forEach((deviceinfo) => {
-							// approve -> search things -> search items
-							var appOp = hubutils.getApproveDevOptions(deviceinfo);
-							request(appOp, function(err, res) {
-								if(!err && res.statusCode == 200) {
-									// handle after approving
-									app.prepareDeviceInfo(deviceinfo);
-								}
-							});
-						});
-					}
-					else {
-						winston.info('INFO', 'NO NEW DEVICES');
+	var options = {
+		uri: url,
+		method:"GET"
+	};
+	request(options, function(err, res) {
+		winston.info('INFO', 'GET INBOX');
+		var devices = JSON.parse(res.body);
+		if(devices.length > 0) {
+			console.log('/n');
+			devices.forEach((deviceinfo) => {
+				// approve -> search things -> search items
+				var appOp = hubutils.getApproveDevOptions(deviceinfo);
+				console.log(deviceinfo+ '\napprove options: ', appOp);
+				request(appOp, function(err, res) {
+					if(!err && res.statusCode === 200) {
+						// handle after approving
+						console.log("Handle New device");
+						app.prepareDeviceInfo(deviceinfo);
 					}
 				});
+			});
+		}
+		else {
+			winston.info('INFO', 'NO NEW DEVICES');
+		}
+	});
 }
 
 app.prepareDeviceInfo = function(devInfo) {
-	var url = hubutils.getThingUrl(devInfo.properties.thingUID);
-	request.get(url)
-		.on('response', function(res){
-			if(res.statusCode === 200) {
-				var thing = JSON.parse(res.body);
-				if((thing.channels).length > 0 && (thing.channels.linkedItems)>0) {
-					const channel = thing.channels[0];
-					const linkedItem = channel.linkedItems[0];
-					var device = {
-						deviceLink:linkedItem,
-						type:channel.itemType
-					};
-					url = hubutils.getItemUrl(linkedItem, 'state');
-					request.get(url)
-									.on('response', function(itemres){
-										if(!err && itemres.statusCode === 200) {
-											device.state = itemres.body;
-											app.registerDevice(device);
-										}
-									});
-				}
+	devInfo = JSON.parse('{"flag":"NEW","label":"test Switch","properties":{"udn":"Socket-1_0-221328K0101916"},"representationProperty":"udn","thingUID":"wemo:socket:Socket-1_0-221328K0101916","thingTypeUID":"wemo:socket"}');
+
+	console.log("construct device information");
+	var url = hubutils.getThingUrl(devInfo.thingUID);
+	var options = {
+		uri: url,
+		method:"GET"
+	};
+	request(options, function(err, res) {
+		if(!err && res.statusCode === 200) {
+			var thing = JSON.parse(res.body);
+			winston.info("INFO", "GET THINGS", thing);
+			var channels = thing.channels;
+			if(channels.length > 0) {
+				const channel = channels[0];
+				const linkedItems = channel.linkedItems;
+				winston.info("INFO", "linkedItems", linkedItems[0]);
+				var device = {
+					deviceLink:linkedItems[0],
+					type:channel.itemType,
+					category: 'UNKNOWN'
+				};
+				url = hubutils.getItemUrl(linkedItems[0], 'state');
+				options = {
+					uri:url,
+					method:"GET"
+				};
+				winston.info("INFO", "device\n", device);
+				request(options, function(err, itemres){
+					if(!err && itemres.statusCode === 200) {
+						device.state = itemres.body;
+						winston.info("INFO", "device\n", device);
+						app.registerDevice(device);
+					}
+				});
 			}
-		});
+		}
+		else {
+			winston.info("ERROR", "Request Failed at GET thing")
+		}
+	});
 }
 
 app.registerDevice = function(device) {
 	var options = backend.getRegisterdeviceOptions(app, device);
+	winston.info("INFO", "DEVICE", device)
+	winston.info('INFO', "options -> ", options)
 	request(options, function(err, res){
 		if(!err) {
-			console.log('Server gets new device', device.deviceLink);;
+			if(res.statusCode == 200) {
+				console.log('Server gets new device', device.deviceLink);;
+			}
+			else {
+				winston.info('ERROR', 'statusCode', res.statusCode)
+				winston.info("ERROR", "message: \n", JSON.parse(res.body).error);
+			}
 		}
 		else {
 			// Handle CONNECTION ERROR
 			winston.info('ERROR', 'CONNECTION ERROR');
+
 		}
 	});
 }
@@ -140,7 +174,7 @@ app.checkupdates = function() {
 app.startCheckNewDevices = function() {
   setInterval(function() {
     if(registered) {
-      app.checkNewDevices();
+      app.registerNewDevices();
     }
   }, app.checkdevtime);
 };

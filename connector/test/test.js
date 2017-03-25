@@ -13,32 +13,20 @@ describe('Sample', function() {
 });
 
 describe('Test Request Setup', function() {
-  var options = {};
-  var opBackend= {};
-  var opHub= {};
-  var sample = [{
-		deviceLink: "testitem",
-		hubCode: "bbTestHubCode", 
-		state: "OFF", 
-		category: "", 
-		type: "Switch"
-		}];
-  var opNewDev = server.getRegisterdeviceOptions(app, sample[0]);
   it('Request for backend', function() {
-    assert.equal(JSON.stringify(options),
-            JSON.stringify(opBackend));
+
   });
   it('Request for hub', function() {
-    assert.equal(JSON.stringify(options),
-            JSON.stringify(opHub));
-  });
-  
-  it('Request for new device', function() {
-		console.log(opNewDev);
-    assert.equal(JSON.stringify(options),
-            JSON.stringify(opHub));
+
   });
 
+  it('Request for new device', function() {
+
+  });
+
+});
+
+describe('New Devices', function() {
 });
 
 /*

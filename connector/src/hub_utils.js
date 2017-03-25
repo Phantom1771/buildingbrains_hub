@@ -10,10 +10,10 @@ function genRandID() {
 };
 
 module.exports = {
-  
+
   getbaseUrl:function() {
-    if(this.loopback = true) {
-      return 'http://localhost:8080'+path;
+    if(this.loopback) {
+      return 'http://localhost:8080' + '/rest';
     }
     return 'http://' + this.ip + ':' + this.port + '/rest';
   },
@@ -31,7 +31,7 @@ module.exports = {
   getItemUrl:function(itemName, attr) {
     var url = this.getbaseUrl()+'/items/';
     if(attr === 'state') {
-      url += itemName+'/'state;
+      url += itemName+'/state';
     }
     return url;
   },
@@ -40,7 +40,7 @@ module.exports = {
   getApproveDevOptions: function(device) {
     var url = this.getbaseUrl();
     var label = device.label;
-    url += '/inbox/' + device.properties.thingUID + '/approve';
+    url += '/inbox/' + device.thingUID + '/approve';
     var options = {
         method:"POST",
         uri: url
@@ -69,7 +69,7 @@ module.exports = {
 
 
   // hub config
-  loopback: true,
+  loopback: false,
   ip: '161.97.196.240',
   port: 8080
 }
