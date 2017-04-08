@@ -1,20 +1,10 @@
 #Building Brains -- Hub
 
+
 Directory
 ----------
     .
-    +---- openhab2/conf/rules       (1)
+    +---- openhab2/conf/rules		// simple rules for hub registration
+		+---- connector							// HTTP Polling 
 
-
-##Environment Setup
-
-##openHab(ver. 2)
-(1).... <openhab_root_dir>/conf/rules/
-
-##Test Platform
-###Linux x86
-1. Download openHab from offical website
-
-###Raspberry pi:
-N/A
 
