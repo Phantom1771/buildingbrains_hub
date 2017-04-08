@@ -38,16 +38,16 @@ module.exports = {
         'Content-Type':'application/json'
       }
     };
-    data.reqId = cxt.reqId;                // extend object
+    data.reqId = cxt.reqId;                
     if(cxt.reqId > 0)
-      data.response = cxt.data;           // extend object
+      data.response = cxt.data;           
     options.body = JSON.stringify(data);
     return options;
   },
 
   getRegisterhubOptions: function(cxt) {     // construct request options
     var url = this.getUrl('registerhub');
-    var data = cxt.hardware;      // object
+    var data = cxt.hardware;
     var options = {
       method:'POST',
       uri: url,

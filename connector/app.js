@@ -1,16 +1,16 @@
-
 const _name = 'app.js';
 const winston = require('winston');
-//const request = require('request');        // used to communicate backend
-const request = require('request');        // used to communicate openHab
-const backend = require('./config/server');
-const hubutils = require('./src/hub_utils');
+const request = require('request');
+const backend = require('./src/server');
+const hubutils = require('./src/hub');
 var registered = false;
 var Connected = false;
 var app = require('./config/config');
 
 //
-// Register the hub
+// Register the hub. On success,The app starts to check updates 
+// from backend server and check new device from openhab.
+// On failure, register again after an time interval
 //
 app.registerHub = function() {
   var options = backend.getRegisterhubOptions(app);
@@ -18,6 +18,7 @@ app.registerHub = function() {
     if(!err) {
 			if(res.statusCode === 200 ||
 					res.statusCode === 400) {
+						// Next sate after registered
 						registered = true;
       			winston.info('OK', 'HUB is registered');
 					}
@@ -31,6 +32,14 @@ app.registerHub = function() {
   });
 };
 
+//
+// Start the routine to register new devices
+// 1. request data from openhab,		GET 	/rest/inbox
+// 2. approve thing.UID to openhab, POST 	/rest/thing.UID/approve
+// 3. request thing from openhab, 	GET 	/rest/thing.UID
+// 4. request state of item, 				GET 	/rest/thing.linkeditem[0]
+// 5. register device 
+//
 app.registerNewDevices = function() {
 	var url = hubutils.getInboxUrl();
 	// query new devices in INBOX
@@ -44,12 +53,12 @@ app.registerNewDevices = function() {
 		if(devices.length > 0) {
 			console.log('/n');
 			devices.forEach((deviceinfo) => {
-				// approve -> search things -> search items
+				// approving device found
 				var appOp = hubutils.getApproveDevOptions(deviceinfo);
 				console.log(deviceinfo+ '\napprove options: ', appOp);
 				request(appOp, function(err, res) {
 					if(!err && res.statusCode === 200) {
-						// handle after approving
+						// handle after approving successfully
 						console.log("Handle New device");
 						app.prepareDeviceInfo(deviceinfo);
 					}
@@ -62,6 +71,12 @@ app.registerNewDevices = function() {
 	});
 }
 
+//
+// prepare the device info as Backend required
+// by retrieving the thing with devInfo.thingUID
+//
+// **Don't guurantee the state is initialized
+//
 app.prepareDeviceInfo = function(devInfo) {
 	var url = hubutils.getThingUrl(devInfo.thingUID);
 	var options = {
@@ -71,23 +86,21 @@ app.prepareDeviceInfo = function(devInfo) {
 	request(options, function(err, res) {
 		if(!err && res.statusCode === 200) {
 			var thing = JSON.parse(res.body);
-			winston.info("INFO", "GET THINGS", thing);
 			var channels = thing.channels;
 			if(channels.length > 0) {
 				const channel = channels[0];
 				const linkedItems = channel.linkedItems;
-				winston.info("INFO", "linkedItems", linkedItems[0]);
 				var device = {
 					deviceLink:linkedItems[0],
 					type:channel.itemType,
 					category: 'UNKNOWN'
 				};
+				// retrieve current data of the item
 				url = hubutils.getItemUrl(linkedItems[0], 'state');
 				options = {
 					uri:url,
 					method:"GET"
 				};
-				winston.info("INFO", "device\n", device);
 				request(options, function(err, itemres){
 					if(!err && itemres.statusCode === 200) {
 						device.state = itemres.body;
@@ -103,10 +116,14 @@ app.prepareDeviceInfo = function(devInfo) {
 	});
 }
 
+//
+// register the device with the request [GET, /devices/register]
+// param: 	device: json
+//
+// device fields: {deviceLink, type, category, state}
+//
 app.registerDevice = function(device) {
 	var options = backend.getRegisterdeviceOptions(app, device);
-	winston.info("INFO", "DEVICE", device)
-	winston.info('INFO', "options -> ", options)
 	request(options, function(err, res){
 		if(!err) {
 			if(res.statusCode == 200) {
@@ -126,7 +143,8 @@ app.registerDevice = function(device) {
 }
 
 //
-//
+// Send request to request POST, /hubs/checkUpdates
+// and handle the response from Back-end server
 //
 app.checkupdates = function() {
   var options = backend.getCheckupdateOptions(app);
@@ -167,17 +185,24 @@ app.checkupdates = function() {
   });
 }
 
-// for testing individually or Internal communication in future
+//
+// start the procedures to check new device from openhab
+// in the time interval
+//
 app.startCheckNewDevices = function() {
-  setInterval(function() {
+  app.deviceTimer = setInterval(function() {
     if(registered) {
       app.registerNewDevices();
     }
   }, app.checkdevtime);
 };
 
+//
+// start the procedures to check updates from backend server
+// in the time interval
+//
 app.startCheckupdates = function() {
-  setInterval(function() {
+  app.updateTimer = setInterval(function() {
     if(registered&(!Connected)) {
       /*winston.info("connected")*/
       Connected = true;
