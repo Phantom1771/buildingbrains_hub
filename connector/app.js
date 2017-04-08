@@ -35,7 +35,7 @@ app.registerHub = function() {
 //
 // Start the routine to register new devices
 // 1. request data from openhab,		GET 	/rest/inbox
-// 2. approve thing.UID to openhab, POST 	/rest/thing.UID/approve
+// 2. approve thing.UID to openhab, POST 	/rest/inbox/thing.UID/approve
 // 3. request thing from openhab, 	GET 	/rest/thing.UID
 // 4. request state of item, 				GET 	/rest/thing.linkeditem[0]
 // 5. register device 
@@ -120,7 +120,7 @@ app.prepareDeviceInfo = function(devInfo) {
 // register the device with the request [GET, /devices/register]
 // param: 	device: json
 //
-// device fields: {deviceLink, type, category, state}
+// device: {deviceLink, type, category, state}
 //
 app.registerDevice = function(device) {
 	var options = backend.getRegisterdeviceOptions(app, device);

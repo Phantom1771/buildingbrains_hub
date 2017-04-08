@@ -10,24 +10,27 @@ function genRandID() {
 };
 
 module.exports = {
-
+	// return base rest api url
   getbaseUrl:function() {
     if(this.loopback) {
       return 'http://localhost:8080' + '/rest';
     }
     return 'http://' + this.ip + ':' + this.port + '/rest';
   },
-
+	
+	// return url for /rest/inbox
   getInboxUrl:function() {
     var url = this.getbaseUrl();
     return url+'/inbox';
   },
 
+	// return url for /rest/thing/<thingUID>
   getThingUrl:function(uid) {
     var url = this.getbaseUrl();
     return url+'/things/'+uid;
   },
 
+	// return url for /rest/items/<itemname>
   getItemUrl:function(itemName, attr) {
     var url = this.getbaseUrl()+'/items/';
     if(attr === 'state') {
@@ -36,7 +39,12 @@ module.exports = {
     return url;
   },
 
-  //{"flag":"NEW","label":"test Switch","properties":{"udn":"Socket-1_0-221328K0101916"},"representationProperty":"udn","thingUID":"wemo:socket:Socket-1_0-221328K0101916","thingTypeUID":"wemo:socket"}
+  /* 
+	 *	construct options for approving thingUID
+	 *	param: 
+	 *		device = {label:string, thingUID}
+	 *	return: object
+	 */
   getApproveDevOptions: function(device) {
     var url = this.getbaseUrl();
     var label = device.label;
@@ -53,6 +61,12 @@ module.exports = {
     return options;
   },
 
+  /* 
+	 *	construct options for send command to a device
+	 *	param: 
+	 *		update = {deviceLink:string, setting:string|number}
+	 *	return: object
+	 */
   getSendCmdOptions: function(update) {
     var url = this.getbaseUrl();
     url += '/items/' + update.deviceLink;

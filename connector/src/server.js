@@ -10,7 +10,8 @@ function genRandReqID() {
 }
 
 module.exports = {
-  getUrl: function(type) {        // construct URL
+	// construct options with type
+  getUrl: function(type) {
     var base_url = 'http://';
     var options = {
       min:  0,
@@ -27,7 +28,12 @@ module.exports = {
     else if(type == 'registerdevice')
       return base_url+this.path_registerdevice;
   },
-
+	
+	/* 
+	 *	construct options for checking updates
+	 *	param: cxt = {hardware:{hubcode:<string>, secreteCode:<string>}
+	 *	return: object
+	 */
   getCheckupdateOptions: function(cxt) {     // construct request options
     var url = this.getUrl('checkupdates');
     var data = cxt.hardware;      // object
@@ -44,7 +50,13 @@ module.exports = {
     options.body = JSON.stringify(data);
     return options;
   },
-
+	
+	/* 
+	 *	construct options for registering hub
+	 *	param: 
+	 *		cxt = {hardware:{hubcode:string, secreteCode:string}
+	 *	return: object
+	 */
   getRegisterhubOptions: function(cxt) {     // construct request options
     var url = this.getUrl('registerhub');
     var data = cxt.hardware;
@@ -58,7 +70,14 @@ module.exports = {
     options.body = JSON.stringify(data);
     return options;
   },
-
+	
+	/* 
+	 *	construct options for registering device
+	 *	param:
+	 *		cxt: {hardware:{hubcode:<string>, secreteCode:<string>}
+	 *		device: {deviceLink:string, type:string, category:string, state:string|number}
+	 *	return: object
+	 */
   getRegisterdeviceOptions: function(cxt, device) {     // construct request options
     var url = this.getUrl('registerdevice');
     var options = {
