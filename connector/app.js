@@ -18,7 +18,8 @@ app.registerHub = function() {
   request(options, function(err, res){
     if(!err) {
 			if(res.statusCode === 200 ||
-					res.statusCode === 400) {
+					res.statusCode === 400 ||
+                    res.statusCode === 208) {
 						// Next sate after app.Regitered
 						app.Regitered = true;
       			winston.info('OK', 'HUB is app.Regitered');
