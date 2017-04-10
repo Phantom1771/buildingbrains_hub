@@ -28,8 +28,8 @@ module.exports = {
     else if(type == 'registerdevice')
       return base_url+this.path_registerdevice;
   },
-	
-	/* 
+
+	/*
 	 *	construct options for checking updates
 	 *	param: cxt = {hardware:{hubcode:<string>, secreteCode:<string>}
 	 *	return: object
@@ -44,16 +44,16 @@ module.exports = {
         'Content-Type':'application/json'
       }
     };
-    data.reqId = cxt.reqId;                
+    data.reqId = cxt.reqId;
     if(cxt.reqId > 0)
-      data.response = cxt.data;           
+      data.response = cxt.data;
     options.body = JSON.stringify(data);
     return options;
   },
-	
-	/* 
+
+	/*
 	 *	construct options for registering hub
-	 *	param: 
+	 *	param:
 	 *		cxt = {hardware:{hubcode:string, secreteCode:string}
 	 *	return: object
 	 */
@@ -70,8 +70,8 @@ module.exports = {
     options.body = JSON.stringify(data);
     return options;
   },
-	
-	/* 
+
+	/*
 	 *	construct options for registering device
 	 *	param:
 	 *		cxt: {hardware:{hubcode:<string>, secreteCode:<string>}

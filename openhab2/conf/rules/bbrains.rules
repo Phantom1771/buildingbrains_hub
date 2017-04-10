@@ -1,29 +1,6 @@
-var Number i = 0
-/* change localhost:3000 to desired address */
-val String bb_url = "http://localhost:3000/hubs/register"
-var  String bbserverkey = "{\"secrectkey\":\"none\", \"hubCode\":\""
-
-/* Connect to Backend  */
 rule "Notify at Startup"
 when
-    /* first msg when openhab is started */
     System started
 then
-    var String uuid
-    /* uuid = sendHttpGetRequest("http://localhost:8080/rest/uuid") */
-    uuid = "bbTestHubCode"
-    bbserverkey = bbserverkey + uuid+"\"" + ", \"counter\":\""
-    sendHttpPostRequest(bb_url, "application/json", bbserverkey+i+"\"}")
-    i = i+1
-end
 
-rule "Notify in scheduled"
-when
-    /* update status every 2 hrs */
-    /* Time cron "0 0 2 * * ?" */
-    /* update status every 8 seconds */
-    Time cron "/8 * * * * ?"
-then
-    sendHttpPostRequest(bb_url, "application/json",  bbserverkey+i+"\"}")
-    i = i+1
 end

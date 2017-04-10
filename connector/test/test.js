@@ -1,10 +1,22 @@
 
-var server = require('../config/server');
-var hubutils = require('../src/hub_utils');
+process.env.NODE_ENV = 'test';
+
+var server = require('../src/server');
+var hub = require('../src/hub');
 var config = require('../config/config');
 var app = require('../app');
 var assert = require('assert');
-var json = '{}';
+var e;
+var update = {hubCode: "bbTestHubCode",
+  deviceLink: "testItem",
+  setting: "CMD"};
+var device = {
+  deviceLink: 'itemname',
+  hubCode: app.hardware.hubCode,
+  state: 'ON',
+  category: 'UNKNOWN',
+  type: 'Switch'
+};
 
 describe('Sample', function() {
   it('should return -1 when the value is not present', function() {
@@ -13,34 +25,76 @@ describe('Sample', function() {
 });
 
 describe('Test Request Setup', function() {
-  it('Request for backend', function() {
-
+  it('Request for command', function() {
+    var url = 'http://';
+    if(hub.loopback){
+      url += 'localhost';
+    }
+    else {
+      url += hub.ip;
+    }
+    e = {
+      uri: url+':8080/rest/items/'+update.deviceLink,
+      method: "POST",
+      body:update.setting,
+      headers:{'Content-Type': 'text/plain'}
+    };
+    var options = hub.getSendCmdOptions(update);
+    assert.deepEqual(options, e);
   });
+
   it('Request for hub', function() {
-
+    var url = 'http://';
+    e = {
+      uri: url+server.ipaddrs[0]+':'+server.port+server.path_registerhub,
+      method: "POST",
+      body:JSON.stringify(app.hardware),
+      headers:{'Content-Type': 'application/json'}
+    };
+    var options = server.getRegisterhubOptions(app);
+    assert.deepEqual(options, e);
   });
 
-  it('Request for new device', function() {
+  it('Register for new device', function() {
+    var url = 'http://';
+    var data = {
+      deviceLink: device.deviceLink,
+      hubCode: app.hardware.hubCode,
+      state: device.state,
+      category: device.category,
+      type: device.type
+    };
+    e = {
+      uri: url+server.ipaddrs[0]+':'+server.port+server.path_registerdevice,
+      method: "POST",
+      body:JSON.stringify(data),
+      headers:{'Content-Type': 'application/json'}
+    };
+    data.newitem = 'asdf';
+    var options = server.getRegisterdeviceOptions(app, device);
+    assert.deepEqual(options, e);
 
   });
 
 });
 
-describe('New Devices', function() {
-});
-
-/*
 describe('Test response', function() {
   var options = {};
   var opBackend= {};
   var opHub= {};
   it('Request for backend', function() {
-    assert.equal(JSON.stringify(options),
-            JSON.stringify(opBackend));
+    setTimeout(function(){
+      // test result here
+      done();
+      assert.equal(app.Registered, false);
+    },1000);
   });
   it('Request for hub', function() {
-    assert.equal(JSON.stringify(options),
-            JSON.stringify(opHub));
+    setTimeout(function(){
+      // test result here
+      done();
+      assert.equal(app.Registered, false);
+    },1000);
   });
 });
 
@@ -48,45 +102,11 @@ describe('Test App State', function() {
   // sample test for asyn
   it('No Connection', function(done) {
     // actions
-    var expVal = 0;
-    app.sendReqToBackEnd();
-
+    app.registerHub();
     setTimeout(function(){
       // test result here
-      assert.equal(app.reqId, expVal);
       done();
+      assert.equal(app.Registered, false);
     },1000);
   });
-
-  it('Disconnected by Backend', function(done) {
-    var expVal = 0;
-    app.sendReqToBackEnd();
-    setTimeout(function(){
-      assert.equal(app.reqId, expVal);
-      done();
-    },1000);
-  });
-
-  it('Received Response', function(done) {
-    var expVal = 0;
-    app.sendReqToBackEnd();
-    setTimeout(function(){
-      assert.equal(app.reqId, expVal);
-      done();
-    },1000);
-  });
-
 });
-
-
-/*
-
-
-//var app = require('../app');
-
-
-describe("Test", function() {
-
-
-});
-*/

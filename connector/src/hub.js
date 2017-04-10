@@ -15,9 +15,11 @@ module.exports = {
     if(this.loopback) {
       return 'http://localhost:8080' + '/rest';
     }
-    return 'http://' + this.ip + ':' + this.port + '/rest';
+    else {
+      return 'http://' + this.ip + ':' + this.port + '/rest';
+    }
   },
-	
+
 	// return url for /rest/inbox
   getInboxUrl:function() {
     var url = this.getbaseUrl();
@@ -39,9 +41,9 @@ module.exports = {
     return url;
   },
 
-  /* 
+  /*
 	 *	construct options for approving thingUID
-	 *	param: 
+	 *	param:
 	 *		device = {label:string, thingUID}
 	 *	return: object
 	 */
@@ -61,9 +63,9 @@ module.exports = {
     return options;
   },
 
-  /* 
+  /*
 	 *	construct options for send command to a device
-	 *	param: 
+	 *	param:
 	 *		update = {deviceLink:string, setting:string|number}
 	 *	return: object
 	 */

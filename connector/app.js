@@ -3,9 +3,10 @@ const winston = require('winston');
 const request = require('request');
 const backend = require('./src/server');
 const hubutils = require('./src/hub');
-var registered = false;
-var Connected = false;
 var app = require('./config/config');
+
+app.Regitered = false;
+app.Connected = false;
 
 //
 // Register the hub. On success,The app starts to check updates 
@@ -18,9 +19,9 @@ app.registerHub = function() {
     if(!err) {
 			if(res.statusCode === 200 ||
 					res.statusCode === 400) {
-						// Next sate after registered
-						registered = true;
-      			winston.info('OK', 'HUB is registered');
+						// Next sate after app.Regitered
+						app.Regitered = true;
+      			winston.info('OK', 'HUB is app.Regitered');
 					}
 			else {
       	winston.info('ERROR', 'UNKNOWN ERROR');
@@ -181,7 +182,7 @@ app.checkupdates = function() {
     else {
 			winston.info("ERROR", "EXTERNAL ERROR");
 		}
-    Connected = false;
+    app.Connected = false;
   });
 }
 
@@ -191,7 +192,7 @@ app.checkupdates = function() {
 //
 app.startCheckNewDevices = function() {
   app.deviceTimer = setInterval(function() {
-    if(registered) {
+    if(app.Regitered) {
       app.registerNewDevices();
     }
   }, app.checkdevtime);
@@ -203,9 +204,9 @@ app.startCheckNewDevices = function() {
 //
 app.startCheckupdates = function() {
   app.updateTimer = setInterval(function() {
-    if(registered&(!Connected)) {
+    if(app.Regitered&(!app.Connected)) {
       /*winston.info("connected")*/
-      Connected = true;
+      app.Connected = true;
       app.checkupdates();
     }
   }, app.sendreqtime);
@@ -213,7 +214,7 @@ app.startCheckupdates = function() {
 
 app.run = function() {
   setInterval(function(){
-    if(!registered){
+    if(!app.Regitered){
       app.registerHub();
     }
   }, app.registertime);
