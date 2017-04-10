@@ -1,15 +1,17 @@
 
 process.env.NODE_ENV = 'test';
-
+const request = require('request')
 var server = require('../src/server');
 var hub = require('../src/hub');
 var config = require('../config/config');
 var app = require('../app');
 var assert = require('assert');
 var e;
-var update = {hubCode: "bbTestHubCode",
-  deviceLink: "testItem",
-  setting: "CMD"};
+var update = {
+  hubCode: app.hardware.hubCode,
+  deviceLink: 'MySerialTestItem',
+  setting: 'ON'
+  };
 var device = {
   deviceLink: 'itemname',
   hubCode: app.hardware.hubCode,
@@ -79,26 +81,22 @@ describe('Test Request Setup', function() {
 });
 
 describe('Test response', function() {
-  var options = {};
-  var opBackend= {};
-  var opHub= {};
-  it('Request for backend', function() {
-    setTimeout(function(){
-      // test result here
-      done();
-      assert.equal(app.Registered, false);
-    },1000);
-  });
-  it('Request for hub', function() {
-    setTimeout(function(){
-      // test result here
-      done();
-      assert.equal(app.Registered, false);
-    },1000);
+  it('Send device command', function(done) {
+    var options = hub.getSendCmdOptions(update);
+    request(options, function(err, res, body){
+      if(!err) {
+        done();
+        assert.equal(res.statusCode, 200);
+      }
+      else {
+        done();
+        assert.equal(res.statusCode, 200);
+      }
+    });
   });
 });
 
-describe('Test App State', function() {
+describe('Test App State', function(done) {
   // sample test for asyn
   it('No Connection', function(done) {
     // actions
