@@ -13,12 +13,12 @@
     "body-parser": "^1.17.1",
     "net": "^1.0.2",
     "random-number": "0.0.7",
-    "request": "^2.80.0",
-    "winston": "^2.3.1"
+    "request": "^2.80.0"
   },
   "devDependencies": {
     "mocha": "^3.2.0",
     "chai": "^3.5.0",
-    "chai-http": "^3.0.0"
+    "chai-http": "^3.0.0",
+    "winston": "^2.3.1"
   }
 }
