@@ -16,8 +16,8 @@ if [ ! -d "$EXPECTED_DIR" ]; then
 fi
 
 echo "Install npm packages"
-echo "change to pwd[$ROOT_PATH]"
 cd "connector"
+echo "change to pwd[$PWD]"
 $(npm install --product) || (echo "Failed to install npm packages" && exit)
 
 echo "Start moving files"
@@ -26,6 +26,7 @@ cd $ROOT_PATH
 echo "change to pwd[$ROOT_PATH]"
 $(cp -R ./connector $EXPECTED_DIR) || (echo "Failed to move connector" && exit)
 echo "Moved connector"
-$(cp -R ./openhab2/* $EXPECTED_DIR) || (echo "Failed to move openhab2 rules" && exit)
+EXPECTED_DIR="${EXPECTED_DIR}rules/"
+$(cp -R ./openhab2/conf/rules/* $EXPECTED_DIR) || (echo "Failed to move openhab2 rules" && exit)
 echo "Done"
 
