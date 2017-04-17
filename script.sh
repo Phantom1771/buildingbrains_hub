@@ -28,5 +28,8 @@ $(cp -R ./connector $EXPECTED_DIR) || (echo "Failed to move connector" && exit)
 echo "Moved connector"
 EXPECTED_DIR="${EXPECTED_DIR}rules/"
 $(cp -R ./openhab2/conf/rules/* $EXPECTED_DIR) || (echo "Failed to move openhab2 rules" && exit)
+echo "Moved rules"
+
+#echo "Change ower of files"
 echo "Done"
 
