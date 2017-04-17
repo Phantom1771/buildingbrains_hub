@@ -2,5 +2,5 @@ rule "Notify at Startup"
 when
     System started
 then
-    executeCommandLine("node /etc/opnehab2/connector/app.js");
+    executeCommandLine("node /etc/openhab2/connector/app.js");
 end
