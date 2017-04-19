@@ -84,9 +84,10 @@ module.exports = {
   },
 
 
+
   // hub config
-  loopback: false,
-  ip: '10.0.0.239',
-  //ip: '161.97.196.240',
+  loopback: true,
+  //ip: '10.0.0.239',
+  ip: '161.97.196.240',
   port: 8080
 }

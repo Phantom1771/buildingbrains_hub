@@ -5,7 +5,7 @@ const backend = require('./src/server');
 const hubutils = require('./src/hub');
 const hublog = require('./src/log');
 var app = require('./config/config');
-
+app.HubStatus = false;
 app.Registered = false;
 app.Connected = false;
 
@@ -34,6 +34,38 @@ app.registerHub = function() {
 };
 
 //
+// request /rest to check the availability of rest api
+//
+//
+app.checkHubStatus = function() {
+    var url = hubutils.getbaseUrl();
+	var options = {
+		uri: url,
+		method:"GET"
+	};
+    request(options, function(err, res) {
+        if(!err&&res.statusCode == 200) {
+            app.HubStatus = true;
+            hublog.log('OK', 'HUB is running as expected');
+        }
+        else {
+            app.HubStatus = false;
+            hublog.log('ERROR', 'HUB is not running as expected');
+        }
+    });
+};
+
+//
+//
+//
+//
+/*
+app.discoverDevice() = function() {
+    return 
+}
+*/
+
+//
 // Start the routine to register new devices
 // 1. request data from openhab,		GET 	/rest/inbox
 // 2. approve thing.UID to openhab, POST 	/rest/inbox/thing.UID/approve
@@ -53,7 +85,6 @@ app.registerNewDevices = function() {
 		if(!err) {
 			var devices = JSON.parse(res.body);
 			if(devices.length > 0) {
-				console.log('/n');
 				devices.forEach((deviceinfo) => {
 					// approving device found
 					var appOp = hubutils.getApproveDevOptions(deviceinfo);
@@ -217,7 +248,10 @@ app.startCheckupdates = function() {
 
 app.run = function() {
   setInterval(function(){
-    if(!app.Registered){
+    if(!app.HubStatus) {
+        app.checkHubStatus();
+    }
+    if(app.HubStatus && !app.Registered){
       app.registerHub();
     }
   }, app.registertime);

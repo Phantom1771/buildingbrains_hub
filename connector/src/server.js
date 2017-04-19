@@ -96,6 +96,7 @@ module.exports = {
   path_checkupdates: '/hubs/checkUpdates',
   path_registerhub: '/hubs/register',
   path_registerdevice: '/devices/register',
-  ipaddrs:['127.0.0.1','127.0.0.1'],
-  port:'3000'
+  ipaddrs:['10.201.25.162', '10.201.25.162'],
+  //ipaddrs:['ec2-52-36-226-213.us-west-2.compute.amazonaws.com','ec2-52-36-226-213.us-west-2.compute.amazonaws.com'],
+  port:'4000'
 }

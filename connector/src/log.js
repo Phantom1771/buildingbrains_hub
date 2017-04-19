@@ -13,6 +13,10 @@ log.log = function(type, msg) {
 		msg = "[INFO]" + date.toString() + ' ' + msg;
 		console.log(msg); 
 	}
+	else if(t === 'ok' || t === 'OK') {
+		msg = "[OK]" + date.toString() + ' ' + msg;
+		console.log(msg); 
+	}
 }
 
 module.exports = log;
