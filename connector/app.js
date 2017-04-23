@@ -38,32 +38,56 @@ app.registerHub = function() {
 //
 //
 app.checkHubStatus = function() {
-    var url = hubutils.getbaseUrl();
+  var url = hubutils.getbaseUrl();
 	var options = {
 		uri: url,
 		method:"GET"
 	};
-    request(options, function(err, res) {
-        if(!err&&res.statusCode == 200) {
-            app.HubStatus = true;
-            hublog.log('OK', 'HUB is running as expected');
-        }
-        else {
-            app.HubStatus = false;
-            hublog.log('ERROR', 'HUB is not running as expected');
-        }
-    });
+  request(options, function(err, res) {
+  	if(!err&&res.statusCode == 200) {
+  	  app.HubStatus = true;
+      hublog.log('OK', 'HUB is running as expected');
+		}
+		else {
+		  app.HubStatus = false;
+		  hublog.log('ERROR', 'HUB is not running as expected');
+		}
+  });
 };
 
 //
 //
+// Send discovery command to openhab
 //
-//
-/*
-app.discoverDevice() = function() {
-    return 
+
+app.discoverDevices = function() {
+	var url = hubutils.getDiscoveryUrl();
+	var options = {
+		uri: url,
+		method:"GET"
+	};
+	request(options, function(err, res) {
+    if(!err&&res.statusCode == 200) {
+    	hublog.log('OK', 'Discovery command is sent');
+    }
+    else {
+    	app.HubStatus = false;
+    	hublog.log('ERROR', 'Discovery command is not sent as expected');
+    }
+  });
 }
-*/
+
+app.installExtension = function(extId) {
+	var options = hubutils.getInstallExtOptions(extId);
+	request(options, function(err, res) {
+		if(!err && res.statusCode === 200) {
+			hublog.log('OK', 'openHab received install command for ' + extId);
+		}
+		else {
+			hublog.log('INFO', "openHab didn't receive install command for " + extId);
+		}
+	});
+}
 
 //
 // Start the routine to register new devices
@@ -181,14 +205,15 @@ app.registerDevice = function(device) {
 // Send request to request POST, /hubs/checkUpdates
 // and handle the response from Back-end server
 //
-app.checkupdates = function() {
+app.checkupdates = function(opHandler) {
   var options = backend.getCheckupdateOptions(app);
   request(options, function(err, res, body){
     if(!err) {
 			var data = JSON.parse(body);
       if(data.result === 0) {
 				var updates = data.updates;
-				if(updates.length > 0) {
+				var options	= data.options;
+				if(updates && updates.length > 0) {
 					updates.forEach((update) => {
 						update.method = "POST";
 						var options = hubutils.getSendCmdOptions(update);
@@ -204,6 +229,9 @@ app.checkupdates = function() {
 							}
 						});
 					});
+				}
+				else if(options) {
+					opHandler&&opHandler(options);
 				}
 				else {
 					hublog.log("INFO", "NO UPDATES");

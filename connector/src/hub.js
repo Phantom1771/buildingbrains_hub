@@ -40,6 +40,12 @@ module.exports = {
     }
     return url;
   },
+  
+	// return url for thing discovery /rest/discovery
+	getDiscoveryUrl:function() {
+		var url = this.getbaseUrl()+'/discovery';
+    return url;
+	},
 
   /*
 	 *	construct options for approving thingUID
@@ -82,8 +88,22 @@ module.exports = {
     options.body = update.setting;
     return options;
   },
-
-
+  
+  /*
+   * Install extension with parameter exId
+   * param:
+   *	exId, e.g. binding-avmfritz, more in openhab rest api
+   * return: object
+   */
+  getInstallExtOptions: function(extId) {
+  	var url = this.getbaseUrl();
+    url += '/extensions/' + extId+'/install';
+    var options = {
+      method: "POST",
+      uri: url
+    };
+    return options;
+  },
 
   // hub config
   loopback: true,
