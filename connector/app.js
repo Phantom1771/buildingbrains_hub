@@ -1,9 +1,13 @@
 const _name = 'app.js';
 //const winston = require('winston');
 const request = require('request');
+const mongoose = require('mongoose');
+
 const backend = require('./src/server');
 const hubutils = require('./src/hub');
 const hublog = require('./src/log');
+const UnregDevices = require('./models/UnregDevices');
+
 var app = require('./config/config');
 app.HubStatus = false;
 app.Registered = false;
@@ -130,6 +134,16 @@ app.registerNewDevices = function() {
 	});
 }
 
+app.registerUnregDevices() {
+    UnregDevices.find(function(err, devices) {
+        if(!err) {
+            devices.forEach((device) => {
+                app.prepareDeviceInfo(device);
+            });
+        }
+    });
+}
+
 //
 // prepare the device info as Backend required
 // by retrieving the thing with devInfo.thingUID
@@ -152,7 +166,6 @@ app.prepareDeviceInfo = function(devInfo) {
 				var device = {
 					deviceLink:linkedItems[0],
 					type:channel.itemType,
-					category: 'UNKNOWN'
 				};
 				// retrieve current data of the item
 				url = hubutils.getItemUrl(linkedItems[0], 'state');
@@ -186,11 +199,22 @@ app.registerDevice = function(device) {
 	request(options, function(err, res){
 		if(!err) {
 			if(res.statusCode == 200) {
-				console.log('Server gets new device', device.deviceLink);;
+				console.log('Server gets new device', device.deviceLink);
+                // check whether the device is from database. remove it if yes
+                UnregDevices.findOne({'deviceLink':deviceLink}, function(err, exitingDevice) {
+                    if(!err) {
+                        UnregDevices.remove({'deviceLink':deviceLink}, function(err) {
+                            if(err) {
+                                hublog.log('Error', 'error from removing existing unregistered device');
+                            }
+                        });
+                    }
+                });
 			}
 			else {
 				hublog.log('ERROR', 'statusCode', res.statusCode)
 				hublog.log("ERROR", "message: \n", JSON.parse(res.body).error);
+                app.handleUnregDevice(device);
 			}
 		}
 		else {
@@ -199,6 +223,23 @@ app.registerDevice = function(device) {
 
 		}
 	});
+}
+
+app.handleUnregDevice = function(device) {
+    UnregDevices.findOne({'deviceLink':device.deviceLink}, function(err) {
+        if(err) {
+            // this device is not queue
+            var newDevice = new UnregDevices(device);
+            newDevice.save(function(err) {
+                if(err) {
+                    hublog.log('Error', 'Unable to store the unregisterd device, ' + device.deviceLink);
+                }
+                else {
+                    hublog.log('INFO', 'Added new device to database');
+                }
+            });
+        }
+    });
 }
 
 //
@@ -256,6 +297,7 @@ app.startCheckNewDevices = function() {
   app.deviceTimer = setInterval(function() {
     if(app.Registered) {
       app.registerNewDevices();
+      app.registerUnregDevices();
     }
   }, app.checkdevtime);
 };
@@ -275,6 +317,10 @@ app.startCheckupdates = function() {
 };
 
 app.run = function() {
+  mongoose.connect(app.mongodb);
+  mongoose.connection.on('error', 
+    console.error.bind(console, 'MongoDB connection error:')
+  );
   setInterval(function(){
     if(!app.HubStatus) {
         app.checkHubStatus();
