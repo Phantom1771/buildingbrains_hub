@@ -81,6 +81,9 @@ app.discoverDevices = function() {
   });
 }
 
+//
+// send extension id to openHab to install the desired extension/binding
+//
 app.installExtension = function(extId) {
 	var options = hubutils.getInstallExtOptions(extId);
 	request(options, function(err, res) {
@@ -134,6 +137,11 @@ app.registerNewDevices = function() {
 	});
 }
 
+//
+// Handle the devices that are not registered 
+// due to the connection error. The devices info
+// are backup with mongo databse
+//
 app.registerUnregDevices() {
     UnregDevices.find(function(err, devices) {
         if(!err) {
@@ -225,6 +233,11 @@ app.registerDevice = function(device) {
 	});
 }
 
+//
+// Event: a device is not registered successfully to backend server
+// check whether the unregistered device exists in database
+// if not exist, save the device; otherwise, ignore the device
+//
 app.handleUnregDevice = function(device) {
     UnregDevices.findOne({'deviceLink':device.deviceLink}, function(err) {
         if(err) {
